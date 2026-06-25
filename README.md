@@ -2,25 +2,35 @@
 
 Premium black/gold creator website for FlashDust.
 
-## Features
+## Correct project structure
 
-- Latest 5 YouTube uploads from @FlashDust through the official YouTube API
-- Twitch live-status check through the official Twitch API
-- If Twitch is live, the hero media can show the Twitch player
-- If Twitch is offline, the site shows a random latest YouTube upload
-- Main channel, second channel, VOD channel, Twitch, and business email links
-- Mobile-friendly black/gold design
-
-## Local setup
-
-```bash
-npm install
-npm run dev
+```txt
+app/
+  api/
+    youtube/
+      route.js
+    twitch/
+      route.js
+  globals.css
+  layout.jsx
+  page.jsx
+package.json
+next.config.js
+README.md
+.env.example
+.gitignore
 ```
 
-Copy `.env.example` to `.env.local` and fill in the keys.
+## Deploy
 
-## Required environment variables
+Recommended: Vercel.
+
+1. Upload this project to GitHub.
+2. Import it in Vercel.
+3. Add environment variables later.
+4. Deploy.
+
+## Environment variables needed later
 
 ```env
 YOUTUBE_API_KEY=
@@ -31,14 +41,3 @@ TWITCH_CLIENT_ID=
 TWITCH_CLIENT_SECRET=
 TWITCH_CHANNEL=flashdustwastaken
 ```
-
-`YOUTUBE_CHANNEL_ID` is recommended. If omitted, the app tries to resolve the channel from the handle.
-
-## Deploy
-
-Recommended: Vercel.
-
-1. Upload this project to GitHub.
-2. Import it in Vercel.
-3. Add the environment variables.
-4. Deploy.

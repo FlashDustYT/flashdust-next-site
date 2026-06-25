@@ -1,7 +1,7 @@
- "use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Youtube, Twitch, Mail, ExternalLink, Radio, Sparkles } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -109,10 +109,10 @@ export default function Home() {
 
             <div className="actions">
               <a className="button gold" href={LINKS.main} target="_blank">
-                <Youtube size={20} /> Watch Main Channel
+                <Play size={20} /> Watch Main Channel
               </a>
               <a className="button dark" href={LINKS.twitch} target="_blank">
-                <Twitch size={20} /> Catch Me Live
+                <Tv size={20} /> Catch Me Live
               </a>
             </div>
           </div>
@@ -175,10 +175,10 @@ export default function Home() {
           </div>
 
           <div className="grid">
-            <Card icon={<Youtube />} label="YouTube" title="Main Channel" text="The main home for FlashDust videos, commentary, and polished uploads." href={LINKS.main} />
-            <Card icon={<Youtube />} label="YouTube" title="2nd Channel" text="Extra videos, loose content, and yapping that deserved its own channel." href={LINKS.second} />
+            <Card icon={<Play />} label="YouTube" title="Main Channel" text="The main home for FlashDust videos, commentary, and polished uploads." href={LINKS.main} />
+            <Card icon={<Play />} label="YouTube" title="2nd Channel" text="Extra videos, loose content, and yapping that deserved its own channel." href={LINKS.second} />
             <Card icon={<Radio />} label="YouTube" title="Stream VODs" text="Missed a stream? Full VODs and live moments live here." href={LINKS.vods} />
-            <Card icon={<Twitch />} label="Twitch" title="Live Streams" text="Catch FlashDust live when the content is happening in real time." href={LINKS.twitch} />
+            <Card icon={<Tv />} label="Twitch" title="Live Streams" text="Catch FlashDust live when the content is happening in real time." href={LINKS.twitch} />
           </div>
         </section>
 
