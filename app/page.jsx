@@ -309,6 +309,12 @@ export default function Home() {
     setBadgeInput("");
   }
 
+  function shuffleFeaturedVideo() {
+    if (!videos.length) return;
+    setMode("youtube");
+    setFeatured(pickRandom(videos));
+  }
+
   useEffect(() => {
     const timer = setInterval(() => {
       if (mode === "youtube" && videos.length) {
@@ -422,9 +428,15 @@ export default function Home() {
           <aside className="media-card">
             <div className="media-top">
               <span>{showTwitch ? "TWITCH PLAYER" : "LATEST YOUTUBE"}</span>
-              <span className={twitch.live ? "live" : ""}>
-                {twitch.live ? "LIVE NOW" : showTwitch ? "OFFLINE" : "AUTO"}
-              </span>
+              {showTwitch ? (
+                <span className={twitch.live ? "live" : ""}>
+                  {twitch.live ? "LIVE NOW" : "OFFLINE"}
+                </span>
+              ) : (
+                <button className="auto-shuffle" onClick={shuffleFeaturedVideo} title="Shuffle latest YouTube video">
+                  AUTO
+                </button>
+              )}
             </div>
 
             <div className="player">

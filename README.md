@@ -1,9 +1,9 @@
-# FlashDust Creator Website V11
+# FlashDust Creator Website V12
 
-## New in V11
+## New in V12
 
-- Lucky Dust Roll now shows the target number clearly.
-- Updated copy so players know the target is visible and fair.
+- Makes the `AUTO` label on the YouTube player clickable.
+- Clicking `AUTO` shuffles to another latest YouTube video.
 
 Commit summary:
-V11 - Show Lucky Dust Roll target number
+V12 - Make AUTO shuffle YouTube videos

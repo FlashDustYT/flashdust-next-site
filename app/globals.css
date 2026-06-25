@@ -1070,3 +1070,21 @@ footer {
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
 }
+
+
+/* V12 clickable AUTO shuffle */
+.auto-shuffle {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 1000;
+  cursor: pointer;
+  padding: 0;
+  transition: color .18s ease, transform .18s ease;
+}
+
+.auto-shuffle:hover {
+  color: var(--gold-bright);
+  transform: translateY(-1px);
+}
