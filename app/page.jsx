@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -16,13 +16,49 @@ function pickRandom(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function formatDate(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function playClick(enabled) {
+  if (!enabled || typeof window === "undefined") return;
+
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(620, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(360, ctx.currentTime + 0.055);
+
+    gain.gain.setValueAtTime(0.025, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.065);
+  } catch {
+    // Browser blocked audio; safely ignore.
+  }
+}
+
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [featured, setFeatured] = useState(null);
-  const [twitch, setTwitch] = useState({ live: false, configured: false, channel: "flashdustwastaken" });
   const [channelStats, setChannelStats] = useState(null);
+  const [twitch, setTwitch] = useState({ live: false, configured: false, channel: "flashdustwastaken" });
   const [mode, setMode] = useState("youtube");
   const [youtubeError, setYoutubeError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [soundOn, setSoundOn] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -38,21 +74,33 @@ export default function Home() {
         if (yt?.videos?.length) {
           setVideos(yt.videos);
           setFeatured(pickRandom(yt.videos));
-          if (yt.stats) setChannelStats(yt.stats);
+          setYoutubeError("");
         } else {
           setYoutubeError(yt?.error || "Could not load YouTube videos yet.");
         }
 
+        if (yt?.stats) setChannelStats(yt.stats);
         setTwitch(tw);
 
         if (tw?.live) setMode("twitch");
       } catch {
         setYoutubeError("Could not load media yet.");
+      } finally {
+        setLoading(false);
       }
     }
 
     load();
   }, []);
+
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.target.closest("button, a")) playClick(soundOn);
+    };
+
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [soundOn]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -77,7 +125,13 @@ export default function Home() {
 
   return (
     <main>
+      <div className="dynamic-bg">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="dust" />
+
       <section className="wrap">
         <header>
           <a className="brand" href="#">
@@ -89,13 +143,22 @@ export default function Home() {
             <a href="#channels">Channels</a>
             <a href="#latest">Latest</a>
             <a href="#contact">Business</a>
-            <a href={LINKS.twitch} target="_blank">Twitch</a>
+            <a href={LINKS.twitch} target="_blank">
+              {twitch.live ? <span className="nav-live-dot" /> : null}
+              Twitch
+            </a>
+            <button className="sound-toggle" onClick={() => setSoundOn((value) => !value)} title="Toggle click sound effects">
+              {soundOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            </button>
           </nav>
         </header>
 
         {twitch.live ? (
           <a className="live-banner" href={LINKS.twitch} target="_blank">
-            <Flame size={18} /><strong>LIVE NOW</strong><span>{twitch.game || "Streaming"} • {twitch.viewers || 0} viewers</span><ExternalLink size={18} />
+            <Flame size={18} />
+            <strong>LIVE NOW</strong>
+            <span>{twitch.game || "Streaming"} • {twitch.viewers || 0} viewers</span>
+            <ExternalLink size={18} />
           </a>
         ) : null}
 
@@ -124,13 +187,21 @@ export default function Home() {
               </a>
             </div>
 
-            {channelStats ? (
-              <div className="stats-strip">
-                <Stat icon={<Users />} label="Subscribers" value={channelStats.formattedSubscribers} />
-                <Stat icon={<Eye />} label="Channel Views" value={channelStats.formattedViews} />
-                <Stat icon={<Video />} label="Uploads" value={channelStats.formattedVideos} />
-              </div>
-            ) : null}
+            <div className="stats-strip">
+              {mode === "twitch" ? (
+                <>
+                  <Stat icon={<Activity />} label="Twitch Status" value={twitch.live ? "LIVE" : "Offline"} />
+                  <Stat icon={<Eye />} label="Viewers" value={twitch.live ? String(twitch.viewers || 0) : "0"} />
+                  <Stat icon={<Tv />} label="Channel" value={twitch.displayName || "FlashDust"} />
+                </>
+              ) : channelStats ? (
+                <>
+                  <Stat icon={<Users />} label="Subscribers" value={channelStats.formattedSubscribers} />
+                  <Stat icon={<Eye />} label="Channel Views" value={channelStats.formattedViews} />
+                  <Stat icon={<Video />} label="Uploads" value={channelStats.formattedVideos} />
+                </>
+              ) : null}
+            </div>
           </div>
 
           <aside className="media-card">
@@ -157,7 +228,7 @@ export default function Home() {
                 />
               ) : (
                 <div className="empty">
-                  {youtubeError || "Loading latest FlashDust videos..."}
+                  {loading ? "Loading latest FlashDust videos..." : youtubeError || "Latest videos are unavailable right now."}
                 </div>
               )}
             </div>
@@ -168,8 +239,12 @@ export default function Home() {
                 {showTwitch && twitch.live
                   ? `${twitch.game || "Live"} • ${twitch.viewers || 0} viewers`
                   : showTwitch
-                  ? "The Twitch player is ready. If you are offline, it will show the channel state."
-                  : "Randomly selected from your latest 5 main-channel uploads."}
+                  ? twitch.configured
+                    ? "The Twitch player is ready. If you are offline, it will show the channel state."
+                    : "Twitch live detection is not connected yet. Add Twitch credentials to enable it."
+                  : featured
+                    ? `${featured.formattedViews || "0"} views • Uploaded ${formatDate(featured.publishedAt)}`
+                    : "Randomly selected from your latest 5 main-channel uploads."}
               </p>
             </div>
 
@@ -182,6 +257,39 @@ export default function Home() {
               </button>
             </div>
           </aside>
+        </section>
+
+        <section className="activity-shell">
+          <div className="activity-panel">
+            <div className="activity-head">
+              <MessageCircle size={19} />
+              <div>
+                <h2>{mode === "twitch" ? "Twitch Chat" : "Video Activity"}</h2>
+                <p>{mode === "twitch" ? "Live chat appears here when Twitch allows the embed." : "YouTube uploads do not have recent chat, so this panel shows featured video details."}</p>
+              </div>
+            </div>
+
+            {mode === "twitch" ? (
+              <div className="chat-frame">
+                <iframe
+                  src={`https://www.twitch.tv/embed/flashdustwastaken/chat?parent=${twitchParent}&darkpopout`}
+                  title="FlashDust Twitch Chat"
+                />
+              </div>
+            ) : featured ? (
+              <div className="video-activity">
+                <img src={featured.thumbnail} alt="" />
+                <div>
+                  <span className="label">Now Featured</span>
+                  <h3>{featured.title}</h3>
+                  <p>{featured.formattedViews || "0"} views • Uploaded {formatDate(featured.publishedAt)}</p>
+                  <a href={featured.url} target="_blank">Open on YouTube <ExternalLink size={15} /></a>
+                </div>
+              </div>
+            ) : (
+              <div className="empty compact">Video activity will appear after YouTube loads.</div>
+            )}
+          </div>
         </section>
 
         <section id="channels" className="section">
@@ -201,7 +309,7 @@ export default function Home() {
         <section id="latest" className="section">
           <div className="section-head">
             <h2>Latest uploads.</h2>
-            <p>Automatically pulled from the main FlashDust channel once your YouTube API key is connected.</p>
+            <p>Automatically pulled from your main channel and refreshed through the YouTube Data API.</p>
           </div>
 
           <div className="video-grid">
@@ -237,16 +345,14 @@ export default function Home() {
   );
 }
 
-function formatDate(value) {
-  if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 function Stat({ icon, label, value }) {
   return (
     <div className="stat">
       {icon}
-      <div><strong>{value}</strong><span>{label}</span></div>
+      <div>
+        <strong>{value}</strong>
+        <span>{label}</span>
+      </div>
     </div>
   );
 }
