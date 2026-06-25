@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2 } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Gamepad2 } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -10,6 +10,15 @@ const LINKS = {
   twitch: "https://www.twitch.tv/flashdustwastaken",
   email: "mailto:FlashDustCorp@gmail.com",
 };
+
+// Edit this list anytime to match the games you actually want viewers to join you in.
+const GAMES_I_PLAY = [
+  { name: "Fortnite", note: "Customs, creative, or squads", link: "https://www.twitch.tv/flashdustwastaken" },
+  { name: "Roblox", note: "Viewer games and chaotic sessions", link: "https://www.twitch.tv/flashdustwastaken" },
+  { name: "Minecraft", note: "Community worlds and chill streams", link: "https://www.twitch.tv/flashdustwastaken" },
+  { name: "GTA / FiveM", note: "RP, races, or random nonsense", link: "https://www.twitch.tv/flashdustwastaken" },
+  { name: "Party Games", note: "Jackbox-style viewer chaos", link: "https://www.twitch.tv/flashdustwastaken" },
+];
 
 function pickRandom(items) {
   if (!items?.length) return null;
@@ -113,14 +122,34 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
+  const [showGames, setShowGames] = useState(false);
   const ambientRef = useRef(null);
+
+  async function refreshTwitchStatus({ autoSwitch = false } = {}) {
+    try {
+      const twRes = await fetch(`/api/twitch?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      const tw = await twRes.json();
+      setTwitch(tw);
+
+      if (autoSwitch && tw?.live) {
+        setMode("twitch");
+      }
+    } catch {
+      setTwitch((current) => ({
+        ...current,
+        error: "Could not refresh Twitch status.",
+      }));
+    }
+  }
 
   useEffect(() => {
     async function load() {
       try {
         const [ytRes, twRes] = await Promise.all([
           fetch("/api/youtube"),
-          fetch("/api/twitch"),
+          fetch(`/api/twitch?t=${Date.now()}`, { cache: "no-store" }),
         ]);
 
         const yt = await ytRes.json();
@@ -146,6 +175,12 @@ export default function Home() {
     }
 
     load();
+
+    const twitchTimer = setInterval(() => {
+      refreshTwitchStatus({ autoSwitch: false });
+    }, 30000);
+
+    return () => clearInterval(twitchTimer);
   }, []);
 
   useEffect(() => {
@@ -298,7 +333,7 @@ export default function Home() {
               {mode === "twitch" ? (
                 <>
                   <Stat icon={<Activity />} label="Twitch Status" value={twitch.live ? "LIVE" : "Offline"} />
-                  <Stat icon={<Eye />} label="Viewers" value={twitch.live ? String(twitch.viewers || 0) : "0"} />
+                  <Stat icon={<Eye />} label={twitch.live ? "Live Viewers" : "Viewers"} value={twitch.live ? String(twitch.viewers || 0) : "0"} />
                   <Stat icon={<Tv />} label="Channel" value={twitch.displayName || "FlashDust"} />
                 </>
               ) : channelStats ? (
@@ -344,10 +379,10 @@ export default function Home() {
               <h2>{mediaTitle}</h2>
               <p>
                 {showTwitch && twitch.live
-                  ? `${twitch.game || "Live"} • ${twitch.viewers || 0} viewers`
+                  ? `${twitch.game || "Live"} • ${twitch.viewers || 0} viewers • Live status refreshes every 30s`
                   : showTwitch
                   ? twitch.configured
-                    ? "The Twitch player is ready. If you are offline, it will show the channel state."
+                    ? `Currently offline • Last checked ${twitch.checkedAt ? new Date(twitch.checkedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "just now"}`
                     : "Twitch live detection is not connected yet. Add Twitch credentials to enable it."
                   : featured
                     ? `${featured.formattedViews || "0"} views • Uploaded ${formatDate(featured.publishedAt)}`
@@ -356,15 +391,52 @@ export default function Home() {
             </div>
 
             <div className="toggle-row">
-              <button className={mode === "youtube" ? "active" : ""} onClick={() => setMode("youtube")}>
+              <button className={mode === "youtube" ? "active" : ""} onClick={() => { setMode("youtube"); setShowGames(false); }}>
                 Random Latest Video
               </button>
               <button className={mode === "twitch" ? "active" : ""} onClick={() => setMode("twitch")}>
                 Twitch Player
               </button>
+              {mode === "twitch" ? (
+                <button className={showGames ? "active" : ""} onClick={() => setShowGames((value) => !value)}>
+                  Games I Play
+                </button>
+              ) : null}
             </div>
           </aside>
         </section>
+
+        {mode === "twitch" && showGames ? (
+          <section className="games-panel">
+            <div className="activity-head">
+              <Gamepad2 size={20} />
+              <div>
+                <h2>Games I Play</h2>
+                <p>Want to join a stream? These are the games most likely to show up on FlashDust Twitch.</p>
+              </div>
+            </div>
+
+            <div className="games-grid">
+              {twitch.live && twitch.game ? (
+                <a className="game-card featured-game" href={LINKS.twitch} target="_blank">
+                  <span className="label">Playing Now</span>
+                  <h3>{twitch.game}</h3>
+                  <p>{twitch.title || "Currently live on Twitch."}</p>
+                  <strong>Join Stream ↗</strong>
+                </a>
+              ) : null}
+
+              {GAMES_I_PLAY.map((game) => (
+                <a className="game-card" href={game.link} target="_blank" key={game.name}>
+                  <span className="label">Viewer Friendly</span>
+                  <h3>{game.name}</h3>
+                  <p>{game.note}</p>
+                  <strong>Check Twitch ↗</strong>
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="activity-shell">
           <div className="activity-panel">

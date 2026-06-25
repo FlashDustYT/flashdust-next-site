@@ -1,27 +1,24 @@
-# FlashDust Creator Website V6
+# FlashDust Creator Website V8
 
-## New in V6
+## New in V8
 
-- Latest YouTube comments from the currently featured video
-- More noticeable but still subtle moving background elements
-- Optional generated soft ambient background audio
-- Separate click sound effects toggle
-- Twitch chat remains available in Twitch mode
+- Adds a "Games I Play" button in Twitch mode
+- Shows current live Twitch game as "Playing Now" when live
+- Adds editable `GAMES_I_PLAY` list in `app/page.jsx`
+- Improves performance by making background animation lighter
+- Makes background motion more visible with subtle drifting gold lines
 
-## Important notes
+## Editing games
 
-- Background audio cannot autoplay in modern browsers; visitors have to turn it on with the music button.
-- YouTube comments require the YouTube Data API key and public comments on the video.
-- Twitch chat embed works best on your production Vercel domain.
+Open `app/page.jsx` and edit:
 
-## Environment variables
-
-```env
-YOUTUBE_API_KEY=
-YOUTUBE_HANDLE=FlashDust
-YOUTUBE_CHANNEL_ID=
-
-TWITCH_CLIENT_ID=
-TWITCH_CLIENT_SECRET=
-TWITCH_CHANNEL=flashdustwastaken
+```js
+const GAMES_I_PLAY = [
+  { name: "Fortnite", note: "Customs, creative, or squads", link: "https://www.twitch.tv/flashdustwastaken" },
+  ...
+];
 ```
+
+## Notes
+
+Twitch's API can show your current live category/game. It does not reliably expose a simple "last 5 games played" list without heavier tracking, so this version uses a clean editable list plus current live game.

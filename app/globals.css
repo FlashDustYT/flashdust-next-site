@@ -715,3 +715,122 @@ footer {
   color: var(--muted);
   line-height: 1.55;
 }
+
+
+/* V8: clearer, lighter moving background */
+.dynamic-bg span {
+  filter: blur(34px);
+  opacity: .13;
+  will-change: transform;
+}
+
+.dynamic-bg i {
+  will-change: transform;
+}
+
+.dynamic-bg::before,
+.dynamic-bg::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 38%, rgba(255, 213, 74, .07) 42%, transparent 48%),
+    linear-gradient(115deg, transparent 0 58%, rgba(255, 213, 74, .045) 63%, transparent 70%);
+  animation: driftLines 28s linear infinite;
+  opacity: .7;
+}
+
+.dynamic-bg::after {
+  animation-duration: 42s;
+  animation-direction: reverse;
+  opacity: .38;
+  transform: scale(1.2);
+}
+
+@keyframes driftLines {
+  from { transform: translate3d(-8%, -4%, 0); }
+  to { transform: translate3d(8%, 4%, 0); }
+}
+
+/* V8 games panel */
+.games-panel {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: 22px;
+  background: linear-gradient(135deg, rgba(255,213,74,.1), rgba(255,255,255,.045));
+  box-shadow: 0 24px 70px rgba(0,0,0,.22);
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.game-card {
+  min-height: 165px;
+  border: 1px solid var(--line-soft);
+  border-radius: 20px;
+  background: rgba(0,0,0,.24);
+  padding: 18px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--line);
+  background: rgba(255,255,255,.08);
+}
+
+.game-card h3 {
+  margin: 8px 0 6px;
+  font-size: 1.25rem;
+}
+
+.game-card p {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.game-card strong {
+  color: var(--gold-bright);
+  margin-top: 12px;
+}
+
+.featured-game {
+  background: linear-gradient(135deg, rgba(255,67,67,.13), rgba(255,213,74,.12));
+  border-color: rgba(255, 67, 67, .35);
+}
+
+/* Performance: keep expensive iframe areas stable */
+.player,
+.chat-frame,
+.media-card {
+  transform: translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dynamic-bg span,
+  .dynamic-bg i,
+  .dynamic-bg::before,
+  .dynamic-bg::after,
+  .dust::before,
+  .dust::after {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1000px) {
+  .games-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .games-grid { grid-template-columns: 1fr; }
+}
