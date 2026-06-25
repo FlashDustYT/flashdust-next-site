@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -19,7 +19,8 @@ function pickRandom(items) {
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [featured, setFeatured] = useState(null);
-  const [twitch, setTwitch] = useState({ live: false, channel: "flashdustwastaken" });
+  const [twitch, setTwitch] = useState({ live: false, configured: false, channel: "flashdustwastaken" });
+  const [channelStats, setChannelStats] = useState(null);
   const [mode, setMode] = useState("youtube");
   const [youtubeError, setYoutubeError] = useState("");
 
@@ -37,6 +38,7 @@ export default function Home() {
         if (yt?.videos?.length) {
           setVideos(yt.videos);
           setFeatured(pickRandom(yt.videos));
+          if (yt.stats) setChannelStats(yt.stats);
         } else {
           setYoutubeError(yt?.error || "Could not load YouTube videos yet.");
         }
@@ -91,6 +93,12 @@ export default function Home() {
           </nav>
         </header>
 
+        {twitch.live ? (
+          <a className="live-banner" href={LINKS.twitch} target="_blank">
+            <Flame size={18} /><strong>LIVE NOW</strong><span>{twitch.game || "Streaming"} • {twitch.viewers || 0} viewers</span><ExternalLink size={18} />
+          </a>
+        ) : null}
+
         <section className="hero">
           <div className="hero-copy">
             <div className="badge">
@@ -115,6 +123,14 @@ export default function Home() {
                 <Tv size={20} /> Catch Me Live
               </a>
             </div>
+
+            {channelStats ? (
+              <div className="stats-strip">
+                <Stat icon={<Users />} label="Subscribers" value={channelStats.formattedSubscribers} />
+                <Stat icon={<Eye />} label="Channel Views" value={channelStats.formattedViews} />
+                <Stat icon={<Video />} label="Uploads" value={channelStats.formattedVideos} />
+              </div>
+            ) : null}
           </div>
 
           <aside className="media-card">
@@ -194,7 +210,7 @@ export default function Home() {
                 <img src={video.thumbnail} alt="" />
                 <div>
                   <h3>{video.title}</h3>
-                  <p>{new Date(video.publishedAt).toLocaleDateString()}</p>
+                  <p>{video.formattedViews} views • {formatDate(video.publishedAt)}</p>
                 </div>
               </a>
             )) : (
@@ -218,6 +234,20 @@ export default function Home() {
         <footer>© {new Date().getFullYear()} FlashDust / FDC. Built in Gold Mode.</footer>
       </section>
     </main>
+  );
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function Stat({ icon, label, value }) {
+  return (
+    <div className="stat">
+      {icon}
+      <div><strong>{value}</strong><span>{label}</span></div>
+    </div>
   );
 }
 
