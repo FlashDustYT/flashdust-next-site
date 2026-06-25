@@ -1,24 +1,60 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Gamepad2 } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Dice5, Trophy, MessageSquare } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
   second: "https://www.youtube.com/@FlashYappp",
   vods: "https://www.youtube.com/@FlashDustLive",
   twitch: "https://www.twitch.tv/flashdustwastaken",
+  discord: "https://discord.gg/a3WS6bTWHK",
   email: "mailto:FlashDustCorp@gmail.com",
 };
 
-// Edit this list anytime to match the games you actually want viewers to join you in.
-const GAMES_I_PLAY = [
-  { name: "Fortnite", note: "Customs, creative, or squads", link: "https://www.twitch.tv/flashdustwastaken" },
-  { name: "Roblox", note: "Viewer games and chaotic sessions", link: "https://www.twitch.tv/flashdustwastaken" },
-  { name: "Minecraft", note: "Community worlds and chill streams", link: "https://www.twitch.tv/flashdustwastaken" },
-  { name: "GTA / FiveM", note: "RP, races, or random nonsense", link: "https://www.twitch.tv/flashdustwastaken" },
-  { name: "Party Games", note: "Jackbox-style viewer chaos", link: "https://www.twitch.tv/flashdustwastaken" },
-];
+const DAILY_WINNING_NUMBER = 777;
+const MAX_DAILY_ROLLS = 3;
+const MAX_BADGE_LENGTH = 50;
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getInitialRollState() {
+  if (typeof window === "undefined") {
+    return {
+      date: todayKey(),
+      rollsUsed: 0,
+      rolls: [],
+      won: false,
+      badge: "",
+    };
+  }
+
+  const date = todayKey();
+  const saved = window.localStorage.getItem("flashdust-daily-roll");
+
+  if (!saved) {
+    return { date, rollsUsed: 0, rolls: [], won: false, badge: "" };
+  }
+
+  try {
+    const parsed = JSON.parse(saved);
+    if (parsed.date !== date) {
+      return { date, rollsUsed: 0, rolls: [], won: false, badge: "" };
+    }
+
+    return {
+      date,
+      rollsUsed: parsed.rollsUsed || 0,
+      rolls: Array.isArray(parsed.rolls) ? parsed.rolls : [],
+      won: Boolean(parsed.won),
+      badge: typeof parsed.badge === "string" ? parsed.badge : "",
+    };
+  } catch {
+    return { date, rollsUsed: 0, rolls: [], won: false, badge: "" };
+  }
+}
 
 function pickRandom(items) {
   if (!items?.length) return null;
@@ -122,10 +158,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
-  const [showGames, setShowGames] = useState(false);
-  const [twitchVideos, setTwitchVideos] = useState([]);
-  const [twitchVideosError, setTwitchVideosError] = useState("");
   const [showTwitchChat, setShowTwitchChat] = useState(false);
+  const [rollState, setRollState] = useState(getInitialRollState);
+  const [badgeInput, setBadgeInput] = useState("");
   const ambientRef = useRef(null);
 
   async function refreshTwitchStatus({ autoSwitch = false } = {}) {
@@ -168,20 +203,6 @@ export default function Home() {
 
         if (yt?.stats) setChannelStats(yt.stats);
         setTwitch(tw);
-
-        try {
-          const twitchVideosRes = await fetch(`/api/twitch-videos?t=${Date.now()}`, { cache: "no-store" });
-          const twitchVideosData = await twitchVideosRes.json();
-          if (twitchVideosData?.videos?.length) {
-            setTwitchVideos(twitchVideosData.videos);
-            setTwitchVideosError("");
-          } else {
-            setTwitchVideos([]);
-            setTwitchVideosError(twitchVideosData?.message || twitchVideosData?.error || "No recent Twitch broadcasts found.");
-          }
-        } catch {
-          setTwitchVideosError("Could not load recent Twitch broadcasts.");
-        }
 
         if (tw?.live) setMode("twitch");
       } catch {
@@ -255,6 +276,40 @@ export default function Home() {
   }, [musicOn]);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("flashdust-daily-roll", JSON.stringify(rollState));
+    }
+  }, [rollState]);
+
+  function rollLuckyNumber() {
+    setRollState((current) => {
+      if (current.rollsUsed >= MAX_DAILY_ROLLS || current.won) return current;
+
+      const roll = Math.floor(Math.random() * 1000) + 1;
+      const won = roll === DAILY_WINNING_NUMBER;
+
+      return {
+        ...current,
+        rollsUsed: current.rollsUsed + 1,
+        rolls: [roll, ...current.rolls].slice(0, MAX_DAILY_ROLLS),
+        won: current.won || won,
+      };
+    });
+  }
+
+  function saveDailyBadge() {
+    const clean = badgeInput.trim().slice(0, MAX_BADGE_LENGTH);
+    if (!clean || !rollState.won) return;
+
+    setRollState((current) => ({
+      ...current,
+      badge: clean,
+    }));
+
+    setBadgeInput("");
+  }
+
+  useEffect(() => {
     const timer = setInterval(() => {
       if (mode === "youtube" && videos.length) {
         setFeatured(pickRandom(videos));
@@ -303,6 +358,7 @@ export default function Home() {
               {twitch.live ? <span className="nav-live-dot" /> : null}
               Twitch
             </a>
+            <a href={LINKS.discord} target="_blank">Discord</a>
             <button className="sound-toggle" onClick={() => setSoundOn((value) => !value)} title="Toggle click sound effects">
               {soundOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
             </button>
@@ -408,60 +464,15 @@ export default function Home() {
             </div>
 
             <div className="toggle-row">
-              <button className={mode === "youtube" ? "active" : ""} onClick={() => { setMode("youtube"); setShowGames(false); setShowTwitchChat(false); }}>
+              <button className={mode === "youtube" ? "active" : ""} onClick={() => { setMode("youtube"); setShowTwitchChat(false); }}>
                 Random Latest Video
               </button>
               <button className={mode === "twitch" ? "active" : ""} onClick={() => setMode("twitch")}>
                 Twitch Player
               </button>
-              {mode === "twitch" ? (
-                <button className={showGames ? "active" : ""} onClick={() => setShowGames((value) => !value)}>
-                  Recent Streams
-                </button>
-              ) : null}
             </div>
           </aside>
         </section>
-
-        {mode === "twitch" && showGames ? (
-          <section className="games-panel">
-            <div className="activity-head">
-              <Gamepad2 size={20} />
-              <div>
-                <h2>Recent Twitch Streams</h2>
-                <p>Twitch does not provide a simple public “last games played” history, so this shows your recent broadcasts. When you are live, the current category/game appears first.</p>
-              </div>
-            </div>
-
-            <div className="games-grid">
-              {twitch.live && twitch.game ? (
-                <a className="game-card featured-game" href={LINKS.twitch} target="_blank">
-                  <span className="label">Playing Now</span>
-                  <h3>{twitch.game}</h3>
-                  <p>{twitch.title || "Currently live on Twitch."}</p>
-                  <strong>Join Stream ↗</strong>
-                </a>
-              ) : null}
-
-              {twitchVideos.length ? twitchVideos.map((video) => (
-                <a className="game-card stream-card" href={video.url} target="_blank" key={video.id}>
-                  {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" /> : null}
-                  <span className="label">Recent Broadcast</span>
-                  <h3>{video.title}</h3>
-                  <p>{video.views} views • {video.duration} • {formatDate(video.createdAt)}</p>
-                  <strong>Watch VOD ↗</strong>
-                </a>
-              )) : (
-                <div className="game-card">
-                  <span className="label">Recent Broadcasts</span>
-                  <h3>No VODs Found</h3>
-                  <p>{twitchVideosError || "Recent Twitch broadcasts will appear here after your next saved stream."}</p>
-                  <strong>Check Twitch ↗</strong>
-                </div>
-              )}
-            </div>
-          </section>
-        ) : null}
 
         <section className="activity-shell">
           <div className="activity-panel">
@@ -524,6 +535,72 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="lucky-section">
+          <div className="lucky-card">
+            <div>
+              <div className="label-row"><Dice5 /><span>Daily Challenge</span></div>
+              <h2>Lucky Dust Roll</h2>
+              <p>
+                Roll a number from 1 to 1000. You get 3 rolls per day. Hit the secret number and you can place a daily badge.
+              </p>
+            </div>
+
+            <div className="roll-display">
+              <span>Target: ???</span>
+              <strong>{rollState.rolls[0] || "—"}</strong>
+              <p>{MAX_DAILY_ROLLS - rollState.rollsUsed} rolls left today</p>
+            </div>
+
+            <div className="roll-actions">
+              <button
+                className="button gold"
+                onClick={rollLuckyNumber}
+                disabled={rollState.rollsUsed >= MAX_DAILY_ROLLS || rollState.won}
+              >
+                <Dice5 size={20} /> Roll Number
+              </button>
+
+              {rollState.rolls.length ? (
+                <div className="roll-history">
+                  {rollState.rolls.map((roll, index) => (
+                    <span key={`${roll}-${index}`}>{roll}</span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {rollState.won ? (
+              <div className="winner-box">
+                <Trophy />
+                <div>
+                  <h3>You hit the number!</h3>
+                  {rollState.badge ? (
+                    <p className="daily-badge">Today's badge: <strong>{rollState.badge}</strong></p>
+                  ) : (
+                    <div className="badge-form">
+                      <input
+                        value={badgeInput}
+                        onChange={(event) => setBadgeInput(event.target.value.slice(0, MAX_BADGE_LENGTH))}
+                        placeholder="Enter badge text, max 50 characters"
+                        maxLength={MAX_BADGE_LENGTH}
+                      />
+                      <button onClick={saveDailyBadge}>Place Badge</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : rollState.rollsUsed >= MAX_DAILY_ROLLS ? (
+              <div className="winner-box muted-box">
+                <Dice5 />
+                <div>
+                  <h3>No win today</h3>
+                  <p>Come back tomorrow for 3 more rolls.</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
         <section id="channels" className="section">
           <div className="section-head">
             <h2>Pick your platform.</h2>
@@ -535,6 +612,7 @@ export default function Home() {
             <Card icon={<Play />} label="YouTube" title="2nd Channel" text="Extra videos, loose content, and yapping that deserved its own channel." href={LINKS.second} />
             <Card icon={<Radio />} label="YouTube" title="Stream VODs" text="Missed a stream? Full VODs and live moments live here." href={LINKS.vods} />
             <Card icon={<Tv />} label="Twitch" title="Live Streams" text="Catch FlashDust live when the content is happening in real time." href={LINKS.twitch} />
+            <Card icon={<MessageSquare />} label="Discord" title="Discord Server" text="Join the FlashDust community, chat with viewers, and keep up with updates." href={LINKS.discord} />
           </div>
         </section>
 

@@ -1,18 +1,18 @@
-# FlashDust Creator Website V9
+# FlashDust Creator Website V10
 
-## New in V9
+## New in V10
 
-- Replaces manual “Games I Play” list with recent Twitch broadcasts/VODs
-- Shows current live Twitch game/category as “Playing Now”
-- Adds `/api/twitch-videos` route for recent broadcasts
-- Improves performance by disabling heavy blur orb animations
-- Makes background motion clearer using cheap background-position animation
-- Twitch chat no longer loads automatically; viewer opens it with a button
+- Adds Discord server link:
+  https://discord.gg/a3WS6bTWHK
+- Adds Discord nav link and Discord card
+- Removes recent Twitch games/streams panel
+- Adds Lucky Dust Roll:
+  - 3 rolls per day
+  - random number from 1 to 1000
+  - secret winning number is 777
+  - winners can place a 50-character daily badge
+  - badge persists for the day in that visitor's browser
 
 ## Important
 
-Twitch’s public API does not provide a clean “last games played” history endpoint. This version uses:
-- Current live category/game from Twitch stream status
-- Recent broadcast/VOD list from Twitch videos
-
-This is the closest reliable public-data version without setting up a database to track games over time.
+The Lucky Dust Roll currently uses browser localStorage, so badges are per visitor/browser. For a badge that every visitor sees globally, connect a database such as Supabase or Vercel KV later.
