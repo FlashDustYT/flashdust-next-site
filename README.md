@@ -1,38 +1,26 @@
-# FlashDust Creator Website V5
+# FlashDust Creator Website V6
 
-## New in V5
+## New in V6
 
-- YouTube stats switch to Twitch stats when Twitch mode is selected
-- Dynamic animated background glows
-- Optional click sound effects toggle in the navbar
-- Twitch chat embed panel when Twitch mode is selected
-- YouTube activity panel when YouTube mode is selected
-- Better Twitch status handling
+- Latest YouTube comments from the currently featured video
+- More noticeable but still subtle moving background elements
+- Optional generated soft ambient background audio
+- Separate click sound effects toggle
+- Twitch chat remains available in Twitch mode
 
-## Notes
+## Important notes
 
-- Twitch chat embed works best on the production Vercel domain.
-- YouTube uploaded videos do not have "recent chat." YouTube live chat is only available for livestreams/premieres.
-- The sound effect is off by default. Visitors can turn it on with the speaker button.
+- Background audio cannot autoplay in modern browsers; visitors have to turn it on with the music button.
+- YouTube comments require the YouTube Data API key and public comments on the video.
+- Twitch chat embed works best on your production Vercel domain.
 
 ## Environment variables
-
-Required for YouTube:
 
 ```env
 YOUTUBE_API_KEY=
 YOUTUBE_HANDLE=FlashDust
-```
-
-Optional for faster YouTube lookup:
-
-```env
 YOUTUBE_CHANNEL_ID=
-```
 
-Required for Twitch live detection:
-
-```env
 TWITCH_CLIENT_ID=
 TWITCH_CLIENT_SECRET=
 TWITCH_CHANNEL=flashdustwastaken

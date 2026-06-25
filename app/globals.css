@@ -68,6 +68,29 @@ a { color: inherit; }
 .dynamic-bg span:nth-child(2) { right: -12%; top: 8%; animation-delay: -5s; }
 .dynamic-bg span:nth-child(3) { left: 30%; bottom: -24%; animation-delay: -9s; opacity: .12; }
 
+.dynamic-bg i {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 42px;
+  border: 1px solid rgba(255, 213, 74, .09);
+  background: linear-gradient(135deg, rgba(255,255,255,.035), rgba(255,213,74,.04));
+  transform: rotate(24deg);
+  animation: slowTiles 24s linear infinite;
+  opacity: .35;
+}
+
+.dynamic-bg i:nth-of-type(1) { left: 7%; top: 28%; animation-delay: -2s; }
+.dynamic-bg i:nth-of-type(2) { left: 82%; top: 18%; animation-delay: -8s; }
+.dynamic-bg i:nth-of-type(3) { left: 62%; top: 72%; animation-delay: -14s; }
+.dynamic-bg i:nth-of-type(4) { left: 18%; top: 78%; animation-delay: -19s; }
+
+@keyframes slowTiles {
+  0% { transform: translate3d(0,0,0) rotate(24deg); }
+  50% { transform: translate3d(35px,-24px,0) rotate(38deg); }
+  100% { transform: translate3d(0,0,0) rotate(24deg); }
+}
+
 @keyframes bgMove {
   from { transform: translate3d(-20px, -30px, 0) scale(1); }
   to { transform: translate3d(40px, 45px, 0) scale(1.18); }
@@ -644,4 +667,51 @@ footer {
   .actions, .button { width: 100%; }
   .contact { align-items: flex-start; flex-direction: column; }
   .live-banner { align-items: flex-start; flex-direction: column; }
+}
+
+.comments-list {
+  display: grid;
+  gap: 12px;
+}
+
+.comment {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 18px;
+  background: rgba(0,0,0,.22);
+}
+
+.comment img,
+.comment-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+}
+
+.comment-top {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.comment-top strong {
+  font-size: .95rem;
+}
+
+.comment-top span {
+  color: var(--muted);
+  font-size: .8rem;
+}
+
+.comment p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2 } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -45,20 +45,75 @@ function playClick(enabled) {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.065);
-  } catch {
-    // Browser blocked audio; safely ignore.
-  }
+  } catch {}
+}
+
+function createAmbientLoop() {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AudioContext();
+  const master = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  master.gain.value = 0.018;
+  filter.type = "lowpass";
+  filter.frequency.value = 850;
+
+  filter.connect(master);
+  master.connect(ctx.destination);
+
+  const notes = [110, 164.81, 220, 277.18];
+  const oscillators = notes.map((freq, index) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = index % 2 === 0 ? "sine" : "triangle";
+    osc.frequency.value = freq;
+    gain.gain.value = 0.035 / notes.length;
+
+    osc.connect(gain);
+    gain.connect(filter);
+    osc.start();
+
+    return { osc, gain };
+  });
+
+  let interval = setInterval(() => {
+    const now = ctx.currentTime;
+    oscillators.forEach(({ osc, gain }, i) => {
+      const mod = notes[(i + Math.floor(Math.random() * notes.length)) % notes.length];
+      osc.frequency.exponentialRampToValueAtTime(mod, now + 2.5);
+      gain.gain.linearRampToValueAtTime(0.02 / notes.length, now + 1.2);
+      gain.gain.linearRampToValueAtTime(0.04 / notes.length, now + 2.8);
+    });
+  }, 3200);
+
+  return {
+    stop() {
+      clearInterval(interval);
+      const now = ctx.currentTime;
+      master.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      setTimeout(() => {
+        oscillators.forEach(({ osc }) => osc.stop());
+        ctx.close();
+      }, 450);
+    },
+  };
 }
 
 export default function Home() {
   const [videos, setVideos] = useState([]);
   const [featured, setFeatured] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentsError, setCommentsError] = useState("");
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [channelStats, setChannelStats] = useState(null);
   const [twitch, setTwitch] = useState({ live: false, configured: false, channel: "flashdustwastaken" });
   const [mode, setMode] = useState("youtube");
   const [youtubeError, setYoutubeError] = useState("");
   const [loading, setLoading] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
+  const [musicOn, setMusicOn] = useState(false);
+  const ambientRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -94,6 +149,33 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    async function loadComments() {
+      if (!featured?.id || mode !== "youtube") return;
+
+      try {
+        setCommentsLoading(true);
+        setCommentsError("");
+        const res = await fetch(`/api/comments?videoId=${featured.id}`);
+        const data = await res.json();
+
+        if (data?.comments?.length) {
+          setComments(data.comments);
+        } else {
+          setComments([]);
+          setCommentsError(data?.error || "No recent public comments found for this video.");
+        }
+      } catch {
+        setComments([]);
+        setCommentsError("Could not load recent comments.");
+      } finally {
+        setCommentsLoading(false);
+      }
+    }
+
+    loadComments();
+  }, [featured?.id, mode]);
+
+  useEffect(() => {
     const handler = (event) => {
       if (event.target.closest("button, a")) playClick(soundOn);
     };
@@ -101,6 +183,24 @@ export default function Home() {
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, [soundOn]);
+
+  useEffect(() => {
+    if (musicOn && !ambientRef.current) {
+      ambientRef.current = createAmbientLoop();
+    }
+
+    if (!musicOn && ambientRef.current) {
+      ambientRef.current.stop();
+      ambientRef.current = null;
+    }
+
+    return () => {
+      if (ambientRef.current) {
+        ambientRef.current.stop();
+        ambientRef.current = null;
+      }
+    };
+  }, [musicOn]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -129,6 +229,10 @@ export default function Home() {
         <span />
         <span />
         <span />
+        <i />
+        <i />
+        <i />
+        <i />
       </div>
       <div className="dust" />
 
@@ -149,6 +253,9 @@ export default function Home() {
             </a>
             <button className="sound-toggle" onClick={() => setSoundOn((value) => !value)} title="Toggle click sound effects">
               {soundOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
+            </button>
+            <button className="sound-toggle" onClick={() => setMusicOn((value) => !value)} title="Toggle soft ambient background audio">
+              {musicOn ? <Music2 size={17} /> : <Music size={17} />}
             </button>
           </nav>
         </header>
@@ -264,8 +371,8 @@ export default function Home() {
             <div className="activity-head">
               <MessageCircle size={19} />
               <div>
-                <h2>{mode === "twitch" ? "Twitch Chat" : "Video Activity"}</h2>
-                <p>{mode === "twitch" ? "Live chat appears here when Twitch allows the embed." : "YouTube uploads do not have recent chat, so this panel shows featured video details."}</p>
+                <h2>{mode === "twitch" ? "Twitch Chat" : "Latest YouTube Comments"}</h2>
+                <p>{mode === "twitch" ? "Live chat appears here when Twitch allows the embed." : "Recent public comments from the currently featured video."}</p>
               </div>
             </div>
 
@@ -277,17 +384,36 @@ export default function Home() {
                 />
               </div>
             ) : featured ? (
-              <div className="video-activity">
-                <img src={featured.thumbnail} alt="" />
-                <div>
-                  <span className="label">Now Featured</span>
-                  <h3>{featured.title}</h3>
-                  <p>{featured.formattedViews || "0"} views • Uploaded {formatDate(featured.publishedAt)}</p>
-                  <a href={featured.url} target="_blank">Open on YouTube <ExternalLink size={15} /></a>
-                </div>
+              <div className="comments-list">
+                {commentsLoading ? (
+                  <div className="empty compact">Loading latest comments...</div>
+                ) : comments.length ? (
+                  comments.map((comment) => (
+                    <div className="comment" key={comment.id}>
+                      {comment.avatar ? <img src={comment.avatar} alt="" /> : <div className="comment-avatar" />}
+                      <div>
+                        <div className="comment-top">
+                          <strong>{comment.author}</strong>
+                          <span>{formatDate(comment.publishedAt)}</span>
+                        </div>
+                        <p>{comment.text}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="video-activity">
+                    <img src={featured.thumbnail} alt="" />
+                    <div>
+                      <span className="label">Now Featured</span>
+                      <h3>{featured.title}</h3>
+                      <p>{commentsError || "No public comments are available for this video yet."}</p>
+                      <a href={featured.url} target="_blank">Open on YouTube <ExternalLink size={15} /></a>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="empty compact">Video activity will appear after YouTube loads.</div>
+              <div className="empty compact">Comments will appear after YouTube loads.</div>
             )}
           </div>
         </section>
