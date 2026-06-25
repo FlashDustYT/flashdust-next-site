@@ -541,13 +541,14 @@ export default function Home() {
               <div className="label-row"><Dice5 /><span>Daily Challenge</span></div>
               <h2>Lucky Dust Roll</h2>
               <p>
-                Roll a number from 1 to 1000. You get 3 rolls per day. Hit the secret number and you can place a daily badge.
+                Roll a number from 1 to 1000. You get 3 rolls per day. Hit the visible target number and you can place a daily badge.
               </p>
             </div>
 
             <div className="roll-display">
-              <span>Target: ???</span>
-              <strong>{rollState.rolls[0] || "—"}</strong>
+              <span>Target Number</span>
+              <strong>{DAILY_WINNING_NUMBER}</strong>
+              <p>Your latest roll: {rollState.rolls[0] || "—"}</p>
               <p>{MAX_DAILY_ROLLS - rollState.rollsUsed} rolls left today</p>
             </div>
 
