@@ -123,6 +123,9 @@ export default function Home() {
   const [soundOn, setSoundOn] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
   const [showGames, setShowGames] = useState(false);
+  const [twitchVideos, setTwitchVideos] = useState([]);
+  const [twitchVideosError, setTwitchVideosError] = useState("");
+  const [showTwitchChat, setShowTwitchChat] = useState(false);
   const ambientRef = useRef(null);
 
   async function refreshTwitchStatus({ autoSwitch = false } = {}) {
@@ -165,6 +168,20 @@ export default function Home() {
 
         if (yt?.stats) setChannelStats(yt.stats);
         setTwitch(tw);
+
+        try {
+          const twitchVideosRes = await fetch(`/api/twitch-videos?t=${Date.now()}`, { cache: "no-store" });
+          const twitchVideosData = await twitchVideosRes.json();
+          if (twitchVideosData?.videos?.length) {
+            setTwitchVideos(twitchVideosData.videos);
+            setTwitchVideosError("");
+          } else {
+            setTwitchVideos([]);
+            setTwitchVideosError(twitchVideosData?.message || twitchVideosData?.error || "No recent Twitch broadcasts found.");
+          }
+        } catch {
+          setTwitchVideosError("Could not load recent Twitch broadcasts.");
+        }
 
         if (tw?.live) setMode("twitch");
       } catch {
@@ -391,7 +408,7 @@ export default function Home() {
             </div>
 
             <div className="toggle-row">
-              <button className={mode === "youtube" ? "active" : ""} onClick={() => { setMode("youtube"); setShowGames(false); }}>
+              <button className={mode === "youtube" ? "active" : ""} onClick={() => { setMode("youtube"); setShowGames(false); setShowTwitchChat(false); }}>
                 Random Latest Video
               </button>
               <button className={mode === "twitch" ? "active" : ""} onClick={() => setMode("twitch")}>
@@ -399,7 +416,7 @@ export default function Home() {
               </button>
               {mode === "twitch" ? (
                 <button className={showGames ? "active" : ""} onClick={() => setShowGames((value) => !value)}>
-                  Games I Play
+                  Recent Streams
                 </button>
               ) : null}
             </div>
@@ -411,8 +428,8 @@ export default function Home() {
             <div className="activity-head">
               <Gamepad2 size={20} />
               <div>
-                <h2>Games I Play</h2>
-                <p>Want to join a stream? These are the games most likely to show up on FlashDust Twitch.</p>
+                <h2>Recent Twitch Streams</h2>
+                <p>Twitch does not provide a simple public “last games played” history, so this shows your recent broadcasts. When you are live, the current category/game appears first.</p>
               </div>
             </div>
 
@@ -426,14 +443,22 @@ export default function Home() {
                 </a>
               ) : null}
 
-              {GAMES_I_PLAY.map((game) => (
-                <a className="game-card" href={game.link} target="_blank" key={game.name}>
-                  <span className="label">Viewer Friendly</span>
-                  <h3>{game.name}</h3>
-                  <p>{game.note}</p>
-                  <strong>Check Twitch ↗</strong>
+              {twitchVideos.length ? twitchVideos.map((video) => (
+                <a className="game-card stream-card" href={video.url} target="_blank" key={video.id}>
+                  {video.thumbnail ? <img src={video.thumbnail} alt="" loading="lazy" /> : null}
+                  <span className="label">Recent Broadcast</span>
+                  <h3>{video.title}</h3>
+                  <p>{video.views} views • {video.duration} • {formatDate(video.createdAt)}</p>
+                  <strong>Watch VOD ↗</strong>
                 </a>
-              ))}
+              )) : (
+                <div className="game-card">
+                  <span className="label">Recent Broadcasts</span>
+                  <h3>No VODs Found</h3>
+                  <p>{twitchVideosError || "Recent Twitch broadcasts will appear here after your next saved stream."}</p>
+                  <strong>Check Twitch ↗</strong>
+                </div>
+              )}
             </div>
           </section>
         ) : null}
@@ -449,12 +474,21 @@ export default function Home() {
             </div>
 
             {mode === "twitch" ? (
-              <div className="chat-frame">
-                <iframe
-                  src={`https://www.twitch.tv/embed/flashdustwastaken/chat?parent=${twitchParent}&darkpopout`}
-                  title="FlashDust Twitch Chat"
-                />
-              </div>
+              showTwitchChat ? (
+                <div className="chat-frame">
+                  <iframe
+                    src={`https://www.twitch.tv/embed/flashdustwastaken/chat?parent=${twitchParent}&darkpopout`}
+                    title="FlashDust Twitch Chat"
+                  />
+                </div>
+              ) : (
+                <div className="chat-placeholder">
+                  <MessageCircle size={26} />
+                  <h3>Twitch chat is ready</h3>
+                  <p>Keeping chat closed improves site performance. Open it when you want the live chat panel.</p>
+                  <button onClick={() => setShowTwitchChat(true)}>Open Twitch Chat</button>
+                </div>
+              )
             ) : featured ? (
               <div className="comments-list">
                 {commentsLoading ? (
