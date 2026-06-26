@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Dice5, Trophy, MessageSquare } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Dice5, Trophy, MessageSquare, Palette, Rocket, Gamepad2, Globe2, CheckCircle2, CreditCard } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -9,6 +9,8 @@ const LINKS = {
   vods: "https://www.youtube.com/@FlashDustLive",
   twitch: "https://www.twitch.tv/flashdustwastaken",
   discord: "https://discord.gg/a3WS6bTWHK",
+  arcade: "https://arcade.flashdust.dev",
+  creatorCheckout: "/creator-os",
   email: "mailto:FlashDustCorp@gmail.com",
 };
 
@@ -359,6 +361,8 @@ export default function Home() {
           <nav>
             <a href="#channels">Channels</a>
             <a href="#latest">Latest</a>
+            <a href="#creator-os">Make Your Own</a>
+            <a href={LINKS.arcade} target="_blank">FlashArcade</a>
             <a href="#contact">Business</a>
             <a href={LINKS.twitch} target="_blank">
               {twitch.live ? <span className="nav-live-dot" /> : null}
@@ -405,6 +409,9 @@ export default function Home() {
               </a>
               <a className="button dark" href={LINKS.twitch} target="_blank">
                 <Tv size={20} /> Catch Me Live
+              </a>
+              <a className="button creator" href="#creator-os">
+                <Palette size={20} /> Make Your Own
               </a>
             </div>
 
@@ -614,6 +621,59 @@ export default function Home() {
           </div>
         </section>
 
+
+        <section id="creator-os" className="creator-os-section">
+          <div className="creator-os-hero">
+            <div>
+              <span className="label">Creator OS</span>
+              <h2>Want a website like this?</h2>
+              <p>
+                Turn the FlashDust creator hub into your own personalized website. Pick your colors,
+                add your videos, showcase your games, connect socials, and launch a polished creator page
+                without touching code.
+              </p>
+
+              <div className="creator-actions">
+                <a className="button gold" href="/creator-os">
+                  <Rocket size={20} /> Start Building
+                </a>
+                <a className="button dark" href={LINKS.arcade} target="_blank">
+                  <Gamepad2 size={20} /> Visit FlashArcade
+                </a>
+              </div>
+            </div>
+
+            <div className="site-preview-card">
+              <div className="preview-top">
+                <span className="dot gold-dot" />
+                <span className="dot blue-dot" />
+                <span className="dot purple-dot" />
+              </div>
+              <div className="preview-brand">
+                <div>YN</div>
+                <strong>Your Name</strong>
+              </div>
+              <div className="preview-lines">
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="preview-buttons">
+                <span>YouTube</span>
+                <span>Games</span>
+                <span>Twitch</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="creator-feature-grid">
+            <CreatorFeature icon={<Palette />} title="Your colors" text="Creators choose their own background, accent color, logo, and profile image. Their settings only affect their own site." />
+            <CreatorFeature icon={<Video />} title="Your content" text="Add videos, streams, projects, games, socials, and contact info from one dashboard." />
+            <CreatorFeature icon={<Globe2 />} title="Your link" text="Start with username.flashdust.dev, then connect a custom domain later on a Pro plan." />
+            <CreatorFeature icon={<CreditCard />} title="$9.99/month" text="Low upfront cost, recurring hosting, ongoing updates, and new creator features over time." />
+          </div>
+        </section>
+
         <section id="channels" className="section">
           <div className="section-head">
             <h2>Pick your platform.</h2>
@@ -676,6 +736,16 @@ function Stat({ icon, label, value }) {
         <strong>{value}</strong>
         <span>{label}</span>
       </div>
+    </div>
+  );
+}
+
+function CreatorFeature({ icon, title, text }) {
+  return (
+    <div className="creator-feature">
+      <div>{icon}</div>
+      <h3>{title}</h3>
+      <p>{text}</p>
     </div>
   );
 }
