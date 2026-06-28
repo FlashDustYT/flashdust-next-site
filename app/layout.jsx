@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "FlashDust | Official Creator Hub",
-  description: "Official FlashDust creator hub for YouTube, Twitch, stream VODs, and business inquiries.",
+  description: "Official FlashDust creator site for YouTube, Twitch, stream VODs, creator websites, and business inquiries.",
 };
 
 export default function RootLayout({ children }) {

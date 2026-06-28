@@ -1,25 +1,23 @@
-# FlashDust Creator Website V12
+# FlashDust Creator Website V13
 
-## New in V12
+## New in V13
 
-- Makes the `AUTO` label on the YouTube player clickable.
-- Clicking `AUTO` shuffles to another latest YouTube video.
+- Creator website pricing updated to **1 month free, then $5/month**.
+- Added a Creator Websites section for the future creator-site hub.
+- Twitch live detection now has a fallback checker when Twitch API credentials are missing or stale.
+- Removed/updated wording around old creator hub phrasing.
+- FlashArcade references were checked; this package does not include FlashArcade text in the source.
 
-Commit summary:
-V12 - Make AUTO shuffle YouTube videos
+## Twitch setup
 
+The site now tries:
+1. Official Twitch API using `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET`.
+2. Fallback live status check if those credentials are missing or fail.
 
-# FlashDust Website V13 Creator OS
+For best reliability, keep these set in Vercel:
 
-Changes:
-- Added "Make Your Own" nav/hero call-to-action.
-- Added FlashArcade link to navbar and Creator OS section.
-- Added Creator OS sales section on homepage.
-- Added `/creator-os` interactive builder preview page.
-- Added theme preview for Gold, Blue, Purple, and Green.
-- Added $9.99/month pricing foundation.
-- Added creator subdomain preview: username.flashdust.dev.
-- Login, Stripe subscriptions, and real saved creator settings are next.
-
-Commit summary:
-Add Creator OS and FlashArcade CTAs
+```env
+TWITCH_CLIENT_ID=
+TWITCH_CLIENT_SECRET=
+TWITCH_CHANNEL=flashdustwastaken
+```
