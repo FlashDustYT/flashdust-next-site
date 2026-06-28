@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Dice5, Trophy, MessageSquare, Crown, CheckCircle2 } from "lucide-react";
+import { Play, Tv, Mail, ExternalLink, Radio, Sparkles, Eye, Users, Video, Flame, MessageCircle, Volume2, VolumeX, Activity, Music, Music2, Dice5, Trophy, MessageSquare, Crown, CheckCircle2, Gamepad2 } from "lucide-react";
 
 const LINKS = {
   main: "https://www.youtube.com/@FlashDust",
@@ -10,6 +10,8 @@ const LINKS = {
   twitch: "https://www.twitch.tv/flashdustwastaken",
   discord: "https://discord.gg/a3WS6bTWHK",
   email: "mailto:FlashDustCorp@gmail.com",
+  flashportal: "https://flashportal.dev",
+  creatorStart: "mailto:FlashDustCorp@gmail.com?subject=Creator%20Website%20Free%20Trial&body=Hey%20FlashDust%2C%20I%20want%20to%20start%20my%201-month%20free%20creator%20website%20trial.%0A%0ACreator%20name%3A%0ALinks%20I%20want%20included%3A%0AStyle%20notes%3A",
 };
 
 const DAILY_WINNING_NUMBER = 777;
@@ -360,6 +362,7 @@ export default function Home() {
             <a href="#channels">Channels</a>
             <a href="#latest">Latest</a>
             <a href="#creator-sites">Creator Sites</a>
+            <a href={LINKS.flashportal} target="_blank"><Gamepad2 size={16} /> FlashPortal</a>
             <a href="#contact">Business</a>
             <a href={LINKS.twitch} target="_blank">
               {twitch.live ? <span className="nav-live-dot" /> : null}
@@ -407,6 +410,9 @@ export default function Home() {
               <a className="button dark" href={LINKS.twitch} target="_blank">
                 <Tv size={20} /> Catch Me Live
               </a>
+              <a className="button dark portal-button" href={LINKS.flashportal} target="_blank">
+                <Gamepad2 size={20} /> Open FlashPortal
+              </a>
             </div>
 
             <div className="stats-strip">
@@ -441,12 +447,20 @@ export default function Home() {
             </div>
 
             <div className="player">
-              {showTwitch ? (
+              {showTwitch && twitch.live ? (
                 <iframe
                   src={`https://player.twitch.tv/?channel=flashdustwastaken&parent=${twitchParent}&muted=true`}
                   allowFullScreen
                   title="FlashDust Twitch Player"
                 />
+              ) : showTwitch ? (
+                <div className="twitch-offline-card">
+                  <Tv size={34} />
+                  <strong>{twitch.displayName || "FlashDustWasTaken"}</strong>
+                  <span>Currently offline</span>
+                  <p>No awkward Twitch embed box here — when the stream goes live, this swaps into the real Twitch player automatically.</p>
+                  <a href={LINKS.twitch} target="_blank">Open Twitch Channel <ExternalLink size={15} /></a>
+                </div>
               ) : canShowYoutube ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${featured.id}?rel=0&modestbranding=1`}
@@ -469,7 +483,7 @@ export default function Home() {
                   : showTwitch
                   ? twitch.configured
                     ? `Currently offline • Last checked ${twitch.checkedAt ? new Date(twitch.checkedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "just now"}`
-                    : "Twitch live detection is not connected yet. Add Twitch credentials to enable it."
+                    : "Offline right now. Add Twitch API credentials for faster official live checks, or use the Twitch button to open the channel."
                   : featured
                     ? `${featured.formattedViews || "0"} views • Uploaded ${formatDate(featured.publishedAt)}`
                     : "Randomly selected from your latest 5 main-channel uploads."}
@@ -665,6 +679,14 @@ export default function Home() {
               <p>
                 Creators can test their site for free, customize their page, and only pay after the first month if they want to keep it live.
               </p>
+              <div className="creator-site-actions">
+                <a className="button gold" href={LINKS.creatorStart}>
+                  <Crown size={20} /> Start Free Trial
+                </a>
+                <a className="button dark" href={LINKS.flashportal} target="_blank">
+                  <Gamepad2 size={20} /> Visit FlashPortal
+                </a>
+              </div>
             </div>
 
             <ul>
@@ -672,6 +694,7 @@ export default function Home() {
               <li><CheckCircle2 /> YouTube, Twitch, Discord, and business links</li>
               <li><CheckCircle2 /> Video/stream embeds</li>
               <li><CheckCircle2 /> Black-and-gold FlashDust-style template</li>
+              <li><CheckCircle2 /> 1-month free trial before billing</li>
             </ul>
           </div>
         </section>

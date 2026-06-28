@@ -1151,3 +1151,76 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* V14 FlashPortal + creator-site CTA + cleaner Twitch offline player */
+.portal-button {
+  border-color: rgba(255, 213, 74, .34);
+}
+
+.twitch-offline-card {
+  min-height: 285px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 28px;
+  gap: 10px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(145, 70, 255, .2), transparent 38%),
+    linear-gradient(135deg, rgba(0,0,0,.76), rgba(255, 213, 74, .08));
+  color: var(--text);
+}
+
+.twitch-offline-card svg {
+  color: #a970ff;
+  filter: drop-shadow(0 0 18px rgba(145,70,255,.35));
+}
+
+.twitch-offline-card strong {
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  line-height: 1;
+}
+
+.twitch-offline-card span {
+  color: var(--gold-bright);
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: .78rem;
+}
+
+.twitch-offline-card p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.twitch-offline-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #080808;
+  background: var(--gold-bright);
+  border-radius: 999px;
+  padding: 11px 15px;
+  font-weight: 1000;
+  text-decoration: none;
+}
+
+.creator-site-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.creator-pricing-card .button {
+  width: fit-content;
+}
+
+@media (max-width: 720px) {
+  .creator-site-actions .button {
+    width: 100%;
+  }
+}
